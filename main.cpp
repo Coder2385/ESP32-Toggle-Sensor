@@ -102,7 +102,8 @@ void showSensorData(float temp, float hum) {
      display.setCursor(0, 0);
      display.setTextSize(1);
      display.setTextColor(SSD1306_WHITE);
-     
+
+     // Turn on LED if temperature exceeds threshold (28°C)
      if (temp > TEMP_DREMPEL) {
        digitalWrite(LED_BUTTON, HIGH);
        display.println("Warm!");
@@ -193,22 +194,25 @@ void loop() {
         if (sensorReady && oledReady) {
          float temp = bme.readTemperature();
          float hum = bme.readHumidity();
-
+          
+        // Turn on LED if temperature exceeds threshold (28°C)
         if (temp > TEMP_DREMPEL) {
            digitalWrite(LED_BUTTON, HIGH);
          } else {
            digitalWrite(LED_BUTTON, LOW);
         }
 
+        // Read the raw button state (may include noise/bounce)
         int reading = digitalRead(BUTTON_PIN);
 
+        // If the button state has changed, record the time of change
         if (reading != lastButtonState) {
            lastDebounceTime = millis();
         }
 
+        // Once enough time has passed (debounce delay), accept the new stable state
         if (millis() - lastDebounceTime >= debounceDelay) {
-
-            buttonState = reading;
+            buttonState = reading; // Update to the debounced button state
         }
 
         if (pressDuration = millis() - startTime) {
