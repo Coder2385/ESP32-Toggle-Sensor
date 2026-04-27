@@ -3,7 +3,8 @@
 A standalone IoT system that measures environmental data (temperature & humidity) and displays it live on an OLED screen and in a web browser without internet or external cloud services. 
 When temperature reaches or exceeds 28°C, it automatically triggers a local alert: an LED turns on, the OLED shows Warm!, and the web page highlights the value in red. 
 Perfect for beginners who want to visualize sensor data locally over Wi-Fi while learning how IoT devices can act not just observe.
-Press the button for feedback—or hold it for 2 seconds to switch to network mode and see the IP address and uptime!
+Press the button to toggle between sensor readings (temperature/humidity) and network info (IP address + uptime). 
+The display switches instantly on press and returns to sensor mode when released.
 
 | ![Setup](images/setup.jpg) | ![OLED](images/oled.jpg)
 
@@ -20,8 +21,8 @@ Press the button for feedback—or hold it for 2 seconds to switch to network mo
 - 🔒 No sensitive data in main code.  
 - 🧠 Non-blocking timing with `millis()` → web server stays responsive
 - 🖱️ Interactive button:
-  - *Short press*: shows “Button pressed!” on OLED  
-  - *Long press (>=2 sec)*: switches to **Info Mode** (IP + uptime)  
+  - **While pressed**: shows device IP address and uptime  
+  - **When released**: returns to live temperature and humidity readings
 - 🌡️ Smart alert system: Reacts to high temperature with LED, OLED, and web feedback. 
 
 ---
@@ -46,9 +47,11 @@ This is a common limitation in embedded displays — not a bug!
 
 ## How It Works
 The device runs in **Sensor Mode** by default.  
-Hold the button for 2+ seconds to enter **Info Mode**, which displays:
+Press and hold the button to enter **Info Mode**, which displays:
 - IP address (`Your IP-adress`)  
-- Uptime (in seconds since boot)  
+- Uptime (formatted as `Xm Ys` since boot)
+
+Release the button to return immediately to Sensor Mode.
 
 ---
 
