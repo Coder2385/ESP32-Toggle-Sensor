@@ -29,21 +29,17 @@ const int LED_BUTTON = 5;
 
 int ledState = LOW;
 unsigned long previousMillis = 0;
-const long interval = 1000;
+const unsigned long interval = 1000;
 const float TEMP_DREMPEL = 28.00;
 
-unsigned long pressDuration = 0;
-unsigned long startTime = 0;
 const int MODE_INFO = 1;
 const int MODE_SENSOR = 0;
 int currentMode = MODE_SENSOR;
 
 bool buttonState = false; 
-bool longPressDetected = false;
-bool lastButtonState = false; 
+bool lastButtonReading = false; 
 unsigned long lastDebounceTime = 0;
 const int debounceDelay = 50;
-
 
 // Create a web server object that listens on port 80 (standard HTTP port)
 WebServer server(80);
@@ -102,8 +98,7 @@ void showSensorData(float temp, float hum) {
      display.setCursor(0, 0);
      display.setTextSize(1);
      display.setTextColor(SSD1306_WHITE);
-
-     // Turn on LED if temperature exceeds threshold (28°C)
+     
      if (temp > TEMP_DREMPEL) {
        digitalWrite(LED_BUTTON, HIGH);
        display.println("Warm!");
@@ -115,18 +110,30 @@ void showSensorData(float temp, float hum) {
        display.println("Button pressed!");
        buttonPressed = false;
 
-       if (currentMode == MODE_SENSOR) {
-       } else if (currentMode == MODE_INFO) {
+         // Only show IP and uptime in info mode
+         if (currentMode == MODE_INFO) {
+         // Display the ESP32's softAP IP address
          display.print("IP: ");
          display.println(WiFi.softAPIP());
-
+         
+         // Calculate total uptime in seconds since startup
+         unsigned long totalSeconds = millis() / 1000;
+         // Extract whole minutes from total seconds
+         unsigned long minutes = totalSeconds / 60;
+         // Get remaining seconds (0–59) using modulo
+         unsigned long seconds = totalSeconds % 60;
+         
+         // Display uptime in readable format: Uptime: Xm Ys
          display.print("Uptime: ");
-         display.print(millis() / 1000);
-         display.print(" sec");
+         display.print(minutes);
+         display.print("m ");
+         display.print(seconds);
+         display.print("s ");
        }
 
      } else { 
        display.println("Measure Enviroment");
+       // Check if temperature and humidity values are valid (not NaN)
        if (!isnan(temp) && !isnan(hum)) {
           // Print sensor readings to Serial Monitor for debugging
           display.println("Temperature: " + String(temp, 2) + " C");
@@ -188,40 +195,41 @@ void loop() {
        delay(50);
      }
 
-
     // Checks if it's time for an update
      if(millis() - lastUpdate >= UPDATE_INTERVAL) { 
         if (sensorReady && oledReady) {
          float temp = bme.readTemperature();
          float hum = bme.readHumidity();
-          
-        // Turn on LED if temperature exceeds threshold (28°C)
+
         if (temp > TEMP_DREMPEL) {
            digitalWrite(LED_BUTTON, HIGH);
          } else {
            digitalWrite(LED_BUTTON, LOW);
         }
-
-        // Read the raw button state (may include noise/bounce)
+        // Read the current raw state of the button (HIGH = released, LOW = pressed)
         int reading = digitalRead(BUTTON_PIN);
 
-        // If the button state has changed, record the time of change
-        if (reading != lastButtonState) {
+        // If the button state has changed, reset the debounce timer
+        if (reading != lastButtonReading) {
            lastDebounceTime = millis();
         }
+           lastDebounceTime = reading; 
 
-        // Once enough time has passed (debounce delay), accept the new stable state
+        // After the signal has been stable for at least 'debounceDelay' milliseconds,
+        // update the button state and respond to press/release transitions
         if (millis() - lastDebounceTime >= debounceDelay) {
-            buttonState = reading; // Update to the debounced button state
-        }
+           if (reading != buttonState) {
+            buttonState = reading;  // Accept the new stable state
 
-        if (pressDuration = millis() - startTime) {
-           if (pressDuration >= 2000 && !longPressDetected) {
-
+        // Switch display mode based on button state:
+        // LOW = button pressed → show info; HIGH = released → show sensor data
+            if (buttonState == LOW) {
               currentMode = MODE_INFO;
-              longPressDetected = true;
-           }  
+            } else {
+              currentMode = MODE_SENSOR;
+            }
         }
+      }
 
          // Checks for incorrect values
          if (!isnan(temp) && !isnan(hum)) {
@@ -247,5 +255,4 @@ void loop() {
 
   // Web server must always listen
   server.handleClient();
- }
-
+}
