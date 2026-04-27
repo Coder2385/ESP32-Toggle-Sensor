@@ -118,13 +118,19 @@ void showSensorData(float temp, float hum) {
          
          // Calculate total uptime in seconds since startup
          unsigned long totalSeconds = millis() / 1000;
-         // Extract whole minutes from total seconds
-         unsigned long minutes = totalSeconds / 60;
+         // Calculate the number of whole hours in the total uptime
+         unsigned long hours = totalSeconds / 3600;
+         // Calculate remaining minutes after removing full hours
+         unsigned long minutes = (totalSeconds % 3600) / 60;
          // Get remaining seconds (0–59) using modulo
          unsigned long seconds = totalSeconds % 60;
-         
-         // Display uptime in readable format: Uptime: Xm Ys
+
          display.print("Uptime: ");
+         if (hours > 0) {
+           display.print(hours);
+           display.print("h ");
+         }
+         // Display uptime in readable format: Uptime: Xm Ys
          display.print(minutes);
          display.print("m ");
          display.print(seconds);
@@ -213,16 +219,13 @@ void loop() {
         if (reading != lastButtonReading) {
            lastDebounceTime = millis();
         }
-           lastDebounceTime = reading; 
+           lastDebounceTime = reading;
 
-        // After the signal has been stable for at least 'debounceDelay' milliseconds,
-        // update the button state and respond to press/release transitions
+        // If enough time has passed since the last bounce, accept the new button state as stable
         if (millis() - lastDebounceTime >= debounceDelay) {
            if (reading != buttonState) {
-            buttonState = reading;  // Accept the new stable state
+            buttonState = reading;
 
-        // Switch display mode based on button state:
-        // LOW = button pressed → show info; HIGH = released → show sensor data
             if (buttonState == LOW) {
               currentMode = MODE_INFO;
             } else {
