@@ -4,7 +4,7 @@
 Note (1) = THIS IS AN EXPANSION OF ESP32-LOCAL-SENSOR-NODE
 Note (2) = This is the same as the dual sensor mode, but the only difference is 
 that the dual mode switch just toggles between Uptime and Sensor info and with the dual sensor Mode 
-depends on how long you press the button before it switches to he other Mode.
+depends on how long you press the button before it switches to the other Mode.
 
 A standalone IoT system that measures environmental data (temperature & humidity) and displays it live on an OLED screen and in a web browser without internet or external cloud services. 
 When temperature reaches or exceeds 28°C, it automatically triggers a local alert: an LED turns on, the OLED shows Warm!, and the web page highlights the value in red. 
